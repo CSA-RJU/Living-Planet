@@ -1,7 +1,7 @@
 # Riley Underwood
 # Practicum IT
 # 11/3/19
-# v.0.5.7
+# v.0.5.8
 ##                 END OF TERMS AND CONDITIONS
 
 ##        How to Apply These Terms to Your New Programs
@@ -45,7 +45,7 @@ from vector2d import Vector2D
 
 # region [Globals]
 # Misc. globals:
-global block_0, stage, level, carry_on, gameplay, game_map, map_size_x, map_size_y, player_temp_x, player_temp_y, title_screen, stage_surface, stage_start_adjust_x, player_start_adjust_x, stage_coords, player_coords
+global block_0, stage, level, carry_on, gameplay, game_map, game_map_mg, map_size_x, map_size_y, player_temp_x, player_temp_y, title_screen, stage_surface, stage_surface_mg, stage_start_adjust_x, player_start_adjust_x, stage_coords, player_coords
 # Controls:
 global player_x, player_y, player_horizontal_acceleration_speed, player_horizontal_acceleration
 global movement_horizontal_direction, stage_movement_x, player_vertical_acceleration, movement_vertical_direction
@@ -146,6 +146,10 @@ transition_screen.set_alpha(opacity)
 stage_surface = pygame.Surface(screen.get_size())
 stage_surface.fill((255, 255, 254))
 stage_surface.set_colorkey((255, 255, 254))
+
+stage_surface_mg = pygame.Surface(screen.get_size())
+stage_surface_mg.fill((255, 255, 254))
+stage_surface_mg.set_colorkey((255, 255, 254))
 # endregion
 
 # region [Images]
@@ -183,6 +187,8 @@ player = player_idle["right"][0]
 # endregion
 
 ## region [Levels]
+darkness = pygame.image.load('Images/Darkness.png').convert_alpha()
+darkness = pygame.transform.scale(darkness, (1280, 720))
 stage_1_background = pygame.image.load('Images/Stage 1 Background.png').convert_alpha()
 stage_1_background = pygame.transform.scale(stage_1_background, (1280, 720))
 stage_1_backdrop = pygame.image.load('Images/Stage 1 Backdrop.png').convert_alpha()
@@ -273,9 +279,26 @@ def Load_Game():
 
 
 def Load_Map(level):
-    global game_map, map_size_x, map_size_y, player_temp_x, player_temp_y
+    global game_map, game_map_mg, map_size_x, map_size_y, player_temp_x, player_temp_y
     game_map = []
+    game_map_mg = []
     if level != "none":
+        # Middle ground
+        map_load = open(f'Maps/{level} MG.LPM', "r")
+        line = map_load.readline()  # Reads the first line once to get it started.
+        linesplit = line.split(",")
+        line = map_load.readline()
+        while line:  # Assures the program runs through the whole file.
+            linesplit = line.split("'")
+            column = []
+            for f in linesplit:
+                f = f.strip(" \n")
+                column.append(f)
+            game_map_mg.append(column)
+            line = map_load.readline()  # Assures that the program checks more than one line.
+        map_load.close()
+
+        # Stage with hit boxes
         map_load = open(f'Maps/{level}.LPM', "r")
         line = map_load.readline()  # Reads the first line once to get it started.
         linesplit = line.split(",")
@@ -297,7 +320,7 @@ def Load_Map(level):
 
 def Load_Stage():
     # Grabbing the player
-    global map_size_x, map_size_y, player_x, player_y, stage_movement_x, stage_movement_y, stage_surface, stage_start_adjust_x, player_start_adjust_x, stage_coords
+    global map_size_x, map_size_y, player_x, player_y, stage_movement_x, stage_movement_y, stage_surface, stage_surface_mg, stage_start_adjust_x, player_start_adjust_x, stage_coords
 
     player_x = int((player_temp_x - 1) * 50)
     player_y = int((player_temp_y - 1) * 50)
@@ -313,8 +336,12 @@ def Load_Stage():
     stage_surface.fill((255, 255, 254))
     stage_surface.set_colorkey((255, 255, 254))
 
+    stage_surface_mg = pygame.Surface(((map_size_x * 50), (map_size_y * 50)))
+    stage_surface_mg.fill((255, 255, 254))
+    stage_surface_mg.set_colorkey((255, 255, 254))
+
     # Grabbing the blocks
-    global game_map, block_0, stage
+    global game_map, game_map_mg, block_0, stage
     block_0 = pygame.image.load('Images/Blocks/Block 0.png').convert_alpha()
     block_0 = pygame.transform.scale(block_0, (50, 50))
     if stage == "Stage 1":  # Loads in the blocks in stage 1.
@@ -372,41 +399,51 @@ def Load_Stage():
                 if stage == "Stage 1":  # Renders every block in the level and blits it to the stage surface.
                     if game_map[y][x] == '[0]':  # v-- Detects what block goes in which place and blits them. --v
                         stage_surface.blit(block_0, block_pos(x, y))
-                    elif game_map[y][x] == '[2]':
+                    if game_map_mg[y][x] == '[0]':  # v-- Detects what block goes in which place and blits them. --v
+                        stage_surface_mg.blit(block_0, block_pos(x, y))
+                    if game_map[y][x] == '[2]':
                         stage_surface.blit(block_2, block_pos(x, y))
-                    elif game_map[y][x] == '[3]':
+                    if game_map[y][x] == '[3]':
                         stage_surface.blit(block_3, block_pos(x, y))
-                    elif game_map[y][x] == '[#]':
+                    if game_map_mg[y][x] == '[3]':
+                        stage_surface_mg.blit(block_3, block_pos(x, y))
+                    if game_map[y][x] == '[#]':
                         stage_surface.blit(block_cap_3, block_pos(x, y))
-                    elif game_map[y][x] == '[4]':
+                    if game_map[y][x] == '[4]':
                         stage_surface.blit(block_4, block_pos(x, y))
-                    elif game_map[y][x] == '[$]':
+                    if game_map[y][x] == '[$]':
                         stage_surface.blit(block_cap_4, block_pos(x, y))
-                    elif game_map[y][x] == '[5]':
+                    if game_map[y][x] == '[5]':
                         stage_surface.blit(block_5, block_pos(x, y))
-                    elif game_map[y][x] == '[%]':
+                    if game_map_mg[y][x] == '[5]':
+                        stage_surface_mg.blit(block_5, block_pos(x, y))
+                    if game_map[y][x] == '[%]':
                         stage_surface.blit(block_cap_5, block_pos(x, y))
-                    elif game_map[y][x] == '[6]':
+                    if game_map[y][x] == '[6]':
                         stage_surface.blit(block_6, block_pos(x, y))
-                    elif game_map[y][x] == '[^]':
+                    if game_map_mg[y][x] == '[6]':
+                        stage_surface_mg.blit(block_6, block_pos(x, y))
+                    if game_map[y][x] == '[^]':
                         stage_surface.blit(block_cap_6, block_pos(x, y))
-                    elif game_map[y][x] == '[7]':
+                    if game_map[y][x] == '[7]':
                         stage_surface.blit(block_7, block_pos(x, y))
-                    elif game_map[y][x] == '[8]':
+                    if game_map[y][x] == '[8]':
                         stage_surface.blit(block_8, block_pos(x, y))
-                    elif game_map[y][x] == '[w]':
+                    if game_map_mg[y][x] == '[8]':
+                        stage_surface_mg.blit(block_8, block_pos(x, y))
+                    if game_map[y][x] == '[w]':
                         stage_surface.blit(block_w, block_pos(x, y))
-                    elif game_map[y][x] == '[e]':
+                    if game_map[y][x] == '[e]':
                         stage_surface.blit(block_e, block_pos(x, y))
-                    elif game_map[y][x] == '[r]':
+                    if game_map[y][x] == '[r]':
                         stage_surface.blit(block_r, block_pos(x, y))
-                    elif game_map[y][x] == '[t]':
+                    if game_map[y][x] == '[t]':
                         stage_surface.blit(block_t, block_pos(x, y))
-                    elif game_map[y][x] == '[T]':
+                    if game_map[y][x] == '[T]':
                         stage_surface.blit(block_cap_t, block_pos(x, y))
-                    elif game_map[y][x] == '[y]':
+                    if game_map[y][x] == '[y]':
                         stage_surface.blit(block_y, block_pos(x, y))
-                    elif game_map[y][x] == '[Y]':
+                    if game_map[y][x] == '[Y]':
                         stage_surface.blit(block_cap_y, block_pos(x, y))
                 elif stage == "Stage 2":
                     if game_map[y][x] == '[0]':  # v-- Detects what block goes in which place and blits them. --v
@@ -443,14 +480,16 @@ def Stage_Card():
             stage_card_1 = pygame.image.load('Images/Stage Card Home Planet (1).png').convert_alpha()
             stage_card_1 = pygame.transform.scale(stage_card_1, (960, 480))
             stage_card_2_1 = pygame.image.load('Images/Stage Card Home Planet (2) (1).png').convert_alpha()
-            stage_card_2_1 = pygame.transform.scale(stage_card_2_1, (960, 480))
             stage_card_2_2 = pygame.image.load('Images/Stage Card Home Planet (2) (2).png').convert_alpha()
-            stage_card_2_2 = pygame.transform.scale(stage_card_2_2, (960, 480))
             stage_card_2_3 = pygame.image.load('Images/Stage Card Home Planet (2) (3).png').convert_alpha()
-            stage_card_2_3 = pygame.transform.scale(stage_card_2_3, (960, 480))
             stage_card_2_4 = pygame.image.load('Images/Stage Card Home Planet (2) (4).png').convert_alpha()
-            stage_card_2_4 = pygame.transform.scale(stage_card_2_4, (960, 480))
             stage_card_2_5 = pygame.image.load('Images/Stage Card Home Planet (2) (5).png').convert_alpha()
+
+        if stage == "Stage 1":
+            stage_card_2_1 = pygame.transform.scale(stage_card_2_1, (960, 480))
+            stage_card_2_2 = pygame.transform.scale(stage_card_2_2, (960, 480))
+            stage_card_2_3 = pygame.transform.scale(stage_card_2_3, (960, 480))
+            stage_card_2_4 = pygame.transform.scale(stage_card_2_4, (960, 480))
             stage_card_2_5 = pygame.transform.scale(stage_card_2_5, (960, 480))
 
             stage_card_1_pos = [1280, 120]
@@ -760,9 +799,10 @@ while every_on:  # Anything that updates ever.
             stage_movement_y += int(player_vertical_acceleration)
 
             touching_ground = False  # Resets the block sensor (if the player is touching the block).
-            touching_roof = False  # Resets the block sensor (if the player is touching the block).
-            wall_to_right = False  # Resets the block sensor (if the player is touching the block).
-            wall_to_left = False  # Resets the block sensor (if the player is touching the block).
+            touching_roof = False  
+            wall_to_right = False  
+            wall_to_left = False  
+            in_darkness = False
 
             for y in range(map_size_y):  # Runs through the map list separating every line in the y axis.
                 for x in range(map_size_x):  # Runs through the map list separating every item in the x axis in every separation line of the y axis.
@@ -794,6 +834,8 @@ while every_on:  # Anything that updates ever.
                         # region [Walls]
                         if (310 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all:
                                 570 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 660):
+                            if game_map[y][x] == '[0]':
+                                in_darkness = True
                             if game_map[y][x] == '[7]' or game_map[y][x] == '[%]' or game_map[y][x] == '[T]':  # Defines the hit box for left walls.
                                 stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
                                 wall_to_right = True
@@ -864,6 +906,8 @@ while every_on:  # Anything that updates ever.
                 left_border_hit = False
             stage_coords[1] = (0 + stage_movement_y)
             screen.blit(stage_surface, (int(stage_coords[0]), int(stage_coords[1])))
+            if not in_darkness:
+                screen.blit(stage_surface_mg, (int(stage_coords[0]), int(stage_coords[1])))
             # endregion
 
             # region Player animation
@@ -896,6 +940,9 @@ while every_on:  # Anything that updates ever.
             else:
                 screen.blit(player, (590, 310))  # (x, y) Prints the player at the center of the screen
 
+            if in_darkness:
+                screen.blit(darkness, (0, 0))
+
             # region [Stage Cards]
             if stage_card is True:
                 if 120 > stage_card_1_pos[0] or stage_card_1_pos[0] > 200:
@@ -920,15 +967,15 @@ while every_on:  # Anything that updates ever.
                         first_digit = int(i)
                     
                 if first_digit == 1:
-                    screen.blit(stage_card_2_5, (stage_card_2_pos[0], stage_card_2_pos[0]))
+                    screen.blit(stage_card_2_5, (stage_card_2_pos[0], stage_card_2_pos[1]))
                 elif first_digit == 2:
-                    screen.blit(stage_card_2_4, (stage_card_2_pos[0], stage_card_2_pos[0]))
+                    screen.blit(stage_card_2_4, (stage_card_2_pos[0], stage_card_2_pos[1]))
                 elif first_digit == 3:
-                    screen.blit(stage_card_2_3, (stage_card_2_pos[0], stage_card_2_pos[0]))
+                    screen.blit(stage_card_2_3, (stage_card_2_pos[0], stage_card_2_pos[1]))
                 elif first_digit == 4:
-                    screen.blit(stage_card_2_2, (stage_card_2_pos[0], stage_card_2_pos[0]))
+                    screen.blit(stage_card_2_2, (stage_card_2_pos[0], stage_card_2_pos[1]))
                 elif first_digit == 5:
-                    screen.blit(stage_card_2_1, (stage_card_2_pos[0], stage_card_2_pos[0]))
+                    screen.blit(stage_card_2_1, (stage_card_2_pos[0], stage_card_2_pos[1]))
                 screen.blit(stage_card_1, (stage_card_1_pos[0], stage_card_1_pos[1]))
                 
                 if stage_card_1_pos[0] <= -960 and stage_card_2_pos[0] >= 1280:

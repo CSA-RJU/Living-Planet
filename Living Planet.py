@@ -437,25 +437,26 @@ def Load_Stage():
                         stage_surface.blit(block_0y, block_pos(x, y))
 
 def Stage_Card():
-    global stage_card, stage, stage_card_1, stage_card_2_1, stage_card_2_2, stage_card_2_3, stage_card_2_4, stage_card_2_5, stage_card_1_pos, stage_card_2_pos
-    if stage == "Stage 1":
-        stage_card_1 = pygame.image.load('Images/Stage Card Home Planet (1).png').convert_alpha()
-        stage_card_1 = pygame.transform.scale(stage_card_1, (960, 480))
-        stage_card_2_1 = pygame.image.load('Images/Stage Card Home Planet (2) (1).png').convert_alpha()
-        stage_card_2_1 = pygame.transform.scale(stage_card_2_1, (960, 480))
-        stage_card_2_2 = pygame.image.load('Images/Stage Card Home Planet (2) (2).png').convert_alpha()
-        stage_card_2_2 = pygame.transform.scale(stage_card_2_2, (960, 480))
-        stage_card_2_3 = pygame.image.load('Images/Stage Card Home Planet (2) (3).png').convert_alpha()
-        stage_card_2_3 = pygame.transform.scale(stage_card_2_3, (960, 480))
-        stage_card_2_4 = pygame.image.load('Images/Stage Card Home Planet (2) (4).png').convert_alpha()
-        stage_card_2_4 = pygame.transform.scale(stage_card_2_4, (960, 480))
-        stage_card_2_5 = pygame.image.load('Images/Stage Card Home Planet (2) (5).png').convert_alpha()
-        stage_card_2_5 = pygame.transform.scale(stage_card_2_5, (960, 480))
+    global stage_card, stage, gameplay, stage_card_1, stage_card_2_1, stage_card_2_2, stage_card_2_3, stage_card_2_4, stage_card_2_5, stage_card_1_pos, stage_card_2_pos
+    if gameplay == True:
+        if stage == "Stage 1":
+            stage_card_1 = pygame.image.load('Images/Stage Card Home Planet (1).png').convert_alpha()
+            stage_card_1 = pygame.transform.scale(stage_card_1, (960, 480))
+            stage_card_2_1 = pygame.image.load('Images/Stage Card Home Planet (2) (1).png').convert_alpha()
+            stage_card_2_1 = pygame.transform.scale(stage_card_2_1, (960, 480))
+            stage_card_2_2 = pygame.image.load('Images/Stage Card Home Planet (2) (2).png').convert_alpha()
+            stage_card_2_2 = pygame.transform.scale(stage_card_2_2, (960, 480))
+            stage_card_2_3 = pygame.image.load('Images/Stage Card Home Planet (2) (3).png').convert_alpha()
+            stage_card_2_3 = pygame.transform.scale(stage_card_2_3, (960, 480))
+            stage_card_2_4 = pygame.image.load('Images/Stage Card Home Planet (2) (4).png').convert_alpha()
+            stage_card_2_4 = pygame.transform.scale(stage_card_2_4, (960, 480))
+            stage_card_2_5 = pygame.image.load('Images/Stage Card Home Planet (2) (5).png').convert_alpha()
+            stage_card_2_5 = pygame.transform.scale(stage_card_2_5, (960, 480))
 
-    stage_card_1_pos = [1280, 120]
-    stage_card_2_pos = [-960, 120]
+            stage_card_1_pos = [1280, 120]
+            stage_card_2_pos = [-960, 120]
 
-    stage_card = True
+            stage_card = True
 
 
 def Pause():  # Pauses the game.

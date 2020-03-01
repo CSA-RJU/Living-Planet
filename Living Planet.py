@@ -1,7 +1,7 @@
 # Riley Underwood
 # Practicum IT
 # 11/3/19
-# v.0.5.9
+# v.0.5.9.2
 ##                 END OF TERMS AND CONDITIONS
 
 ##        How to Apply These Terms to Your New Programs
@@ -81,7 +81,7 @@ player_coords = [586, 0]
 title_planet_frame = 10
 player_frame = 0
 face = "right"
-music_mute = True
+music_mute = False
 god = False
 # endregion
 
@@ -340,7 +340,15 @@ def Load_Stage():
     global game_map, game_map_mg, stage
     block_0 = pygame.image.load('Images/Blocks/Block 0.png').convert_alpha()
     block_0 = pygame.transform.scale(block_0, (50, 50))
+    block_c = pygame.image.load('Images/Blocks/Block Chest.png').convert_alpha()
+    block_c = pygame.transform.scale(block_c, (50, 50))
+    block_cap_c = pygame.image.load('Images/Blocks/Block Chest 0.png').convert_alpha()
+    block_cap_c = pygame.transform.scale(block_cap_c, (50, 50))
     if stage == "Stage 1":  # Loads in the blocks in stage 1.
+        block_l = pygame.image.load('Images/Blocks/Block Torch.png').convert_alpha()
+        block_l = pygame.transform.scale(block_l, (150, 150))
+        block_cap_l = pygame.image.load('Images/Blocks/Block Torch 0.png').convert_alpha()
+        block_cap_l = pygame.transform.scale(block_cap_l, (150, 150))
         block_2 = pygame.image.load('Images/Blocks/Stage 1/Block 2.png').convert_alpha()
         block_2 = pygame.transform.scale(block_2, (50, 50))
         block_3 = pygame.image.load('Images/Blocks/Stage 1/Block 3.png').convert_alpha()
@@ -368,6 +376,10 @@ def Load_Stage():
         block_y = pygame.transform.flip(block_6, False, True)
         block_cap_y = pygame.transform.flip(block_cap_6, False, True)
     elif stage == "Stage 2":
+        block_l = pygame.image.load('Images/Blocks/Block Torch.png').convert_alpha()
+        block_l = pygame.transform.scale(block_l, (150, 50))
+        block_cap_l = pygame.image.load('Images/Blocks/Block Torch 0.png').convert_alpha()
+        block_cap_l = pygame.transform.scale(block_cap_l, (150, 50))
         block_02 = pygame.image.load('Images/Blocks/Stage 2/Block 02.png').convert_alpha()
         block_02 = pygame.transform.scale(block_02, (50, 50))
         block_03 = pygame.image.load('Images/Blocks/Stage 2/Block 03.png').convert_alpha()
@@ -396,25 +408,31 @@ def Load_Stage():
     block_pos = lambda x, y: (int((((x * 50) - float(player_x) + 590) + stage_start_adjust_x)),
                               int(((y * 50) - float(player_y)) + 310))
 
-    block_type_list = ['[0]', '[2]', '[3]', '[#]', '[4]', '[$]', '[5]', '[%]', '[6]', '[^]' , '[7]', '[8]', '[w]', '[e]', '[E]', '[r]', '[R]', '[t]', '[T]', '[y]', '[Y]']
+    block_type_list = ['[0]', '[c]', '[C]', '[l]', '[L]', '[2]', '[3]', '[#]', '[4]', '[$]', '[5]', '[%]', '[6]', '[^]', '[7]', '[8]', '[w]', '[e]', '[E]', '[r]', '[R]', '[t]', '[T]', '[y]', '[Y]']
     if stage == "Stage 1":
-        block_id_list_S1 = [block_0, block_2, block_3, block_cap_3, block_4, block_cap_4, block_5, block_cap_5, block_6, block_cap_6, block_7, block_8, block_w, block_e, block_cap_e, block_r, block_cap_r, block_t, block_cap_t, block_y, block_cap_y]
+        block_id_list_S1 = [block_0, block_c, block_cap_c, block_l, block_cap_l, block_2, block_3, block_cap_3, block_4, block_cap_4, block_5, block_cap_5, block_6, block_cap_6, block_7, block_8, block_w, block_e, block_cap_e, block_r, block_cap_r, block_t, block_cap_t, block_y, block_cap_y]
     if stage == "Stage 2":
-        block_id_list_S2 = [block_0, block_02, block_03, block_cap_03, block_04, block_cap_04, block_05, block_cap_05, block_06, block_cap_06, block_07, block_08, block_0w, block_0e, block_cap_0e, block_0r, block_cap_0r, block_0t, block_cap_0t, block_0y, block_cap_0y]
+        block_id_list_S2 = [block_0, block_c, block_cap_c, block_l, block_cap_l, block_02, block_03, block_cap_03, block_04, block_cap_04, block_05, block_cap_05, block_06, block_cap_06, block_07, block_08, block_0w, block_0e, block_cap_0e, block_0r, block_cap_0r, block_0t, block_cap_0t, block_0y, block_cap_0y]
         
     if level != "none":
         for y in range(map_size_y):  # Runs through the map list separating every line in the y axis.
             for x in range(map_size_x):  # Runs through the map list separating every item in the x axis in every separation line of the y axis.
                 if stage == "Stage 1":  # Renders every block in the level and blits it to the stage surface.
-                    for i in range(0, 21):
+                    for i in range(0, 25):
                         if game_map[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
-                            stage_surface.blit(block_id_list_S1[i], block_pos(x, y))
+                            if i == 3 or i == 4:
+                                stage_surface.blit(block_id_list_S1[i], block_pos(x - 1, y - 1))
+                            else:
+                                stage_surface.blit(block_id_list_S1[i], block_pos(x, y))
                         elif game_map_mg[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
                             stage_surface_mg.blit(block_id_list_S1[i], block_pos(x, y))
                 elif stage == "Stage 2":
                     for i in range(0, 19):
                         if game_map[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
-                            stage_surface.blit(block_id_list_S2[i], block_pos(x, y))
+                            if i == 3 or i == 4:
+                                stage_surface.blit(block_id_list_S2[i], block_pos(x - 50, y - 50))
+                            else:
+                                stage_surface.blit(block_id_list_S2[i], block_pos(x, y))
                         elif game_map_mg[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
                             stage_surface_mg.blit(block_id_list_S2[i], block_pos(x, y))
 
@@ -749,6 +767,11 @@ while every_on:  # Anything that updates ever.
             wall_to_left = False  
             in_darkness = False
 
+            # region [Collision]
+            if int(player_coords[0]) + int(stage_start_adjust_x) + 20 <= 0:
+                stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
+                wall_to_left = True
+            
             for y in range(map_size_y):  # Runs through the map list separating every line in the y axis.
                 for x in range(map_size_x):  # Runs through the map list separating every item in the x axis in every separation line of the y axis.
                     if stage == "Stage 1" or stage == "Stage 2":
@@ -779,7 +802,7 @@ while every_on:  # Anything that updates ever.
                         
                         if (310 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all (about head area):
                                 590 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 640):
-                            if game_map[y][x] == '[0]':
+                            if game_map[y][x] == '[0]'or game_map[y][x] == '[C]':
                                 in_darkness = True
                         
                         # region [Walls]

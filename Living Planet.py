@@ -621,7 +621,7 @@ while every_on:  # Anything that updates ever.
         # endregion
         
         # region [Controls]
-        if title_screen is False and paused is False and transition_end_black is False:  # When Playing the game.
+        if title_screen is False and not paused and transition_end_black is False:  # When Playing the game.
             
             # region [Left]
             if key[pygame.K_a]:
@@ -755,111 +755,124 @@ while every_on:  # Anything that updates ever.
         
         # region Stages
         if gameplay is True:
-            if stage_coords[0] <= 0 and movement_horizontal_direction == "left":
-                stage_movement_x += int(player_horizontal_acceleration)
-            elif movement_horizontal_direction == "right":
-                stage_movement_x += int(player_horizontal_acceleration)
-            stage_movement_y += int(player_vertical_acceleration)
+            if not paused:
+                if stage_coords[0] <= 0 and movement_horizontal_direction == "left":
+                    stage_movement_x += int(player_horizontal_acceleration)
+                elif movement_horizontal_direction == "right":
+                    stage_movement_x += int(player_horizontal_acceleration)
+                stage_movement_y += int(player_vertical_acceleration)
 
-            touching_ground = False  # Resets the block sensor (if the player is touching the block).
-            touching_roof = False  
-            wall_to_right = False  
-            wall_to_left = False  
-            in_darkness = False
+                touching_ground = False  # Resets the block sensor (if the player is touching the block).
+                touching_roof = False
+                wall_to_right = False
+                wall_to_left = False
+                in_darkness = False
 
-            # region [Collision]
-            if int(player_coords[0]) + int(stage_start_adjust_x) + 20 <= 0:
-                stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
-                wall_to_left = True
-            
-            for y in range(map_size_y):  # Runs through the map list separating every line in the y axis.
-                for x in range(map_size_x):  # Runs through the map list separating every item in the x axis in every separation line of the y axis.
-                    if stage == "Stage 1" or stage == "Stage 2":
+                # region [Border Collision]
+                # Left and Right
+                if  570 <= (((-1 * 50) - float(player_x)) + 590) - stage_movement_x <= 660:
+                    stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
+                    wall_to_left = True
+                if  570 <= (((map_size_x * 50) - float(player_x)) + 590) - stage_movement_x <= 660:
+                    stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
+                    wall_to_right = True
 
-                        # region [Ground Collision]
-    # The player's border ---v            v-- The selected block's current position --v
-                        if (360 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all:
-                                570 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 660):
-                            if game_map[y][x] == '[2]' or game_map[y][x] == '[3]' or game_map[y][x] == '[4]' or game_map[y][x] == '[#]' or game_map[y][x] == '[$]':  # Defines the hit box for ground blocks.
-                                if player_vertical_acceleration <= 0:  # If moving down or not at all:
-                                    stage_movement_y = (round(stage_movement_y / 50) * 50)
-                                    touching_ground = True
-                                    if hit_ground == 1:  # The immediate frame when the player lands from falling.
-                                        hit_ground = 0
-                                        player_frame = 49
-                                if game_map[y][x] == '[3]' or game_map[y][x] == '[4]' or game_map[y][x] == '[#]' or game_map[y][x] == '[$]':  # Defines the hit box for corner ground blocks.
-                                    if (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 409:
-                                        if game_map[y][x] == '[3]' or game_map[y][x] == '[#]':
-                                            stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
-                                            touching_ground = False
-                                            wall_to_right = True
-                                        if game_map[y][x] == '[4]' or game_map[y][x] == '[$]':
-                                            stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
-                                            touching_ground = False
-                                            wall_to_left = True
-                        # endregion
-
-                        
-                        if (310 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all (about head area):
-                                590 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 640):
-                            if game_map[y][x] == '[0]'or game_map[y][x] == '[C]':
-                                in_darkness = True
-                        
-                        # region [Walls]
-                        if (310 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all:
-                                570 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 660):
-                            if game_map[y][x] == '[7]' or game_map[y][x] == '[%]' or game_map[y][x] == '[T]':  # Defines the hit box for left walls.
-                                stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
-                                wall_to_right = True
-                            elif game_map[y][x] == '[8]' or game_map[y][x] == '[^]' or game_map[y][x] == '[Y]':  # Defines the hit box for right walls.
-                                stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
-                                wall_to_left = True
-                        # endregion
-
-                        # region [Roof Collision]
-    # The player's border ---v            v-- The selected block's current position --v
-                        if (280 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all:
-                                570 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 660):
-                            if game_map[y][x] == '[w]' or game_map[y][x] == '[e]' or game_map[y][x] == '[r]':  # Defines the hit box for left walls.
-                                stage_movement_y = (round((stage_movement_y / 50) * 50) - player_vertical_acceleration)
-                                touching_roof = True
-                                if game_map[y][x] == '[e]' or game_map[y][x] == '[r]' or game_map[y][x] == '[E]' or game_map[y][x] == '[R]':  # Defines the hit box for corner ground blocks.
-                                    if (((y * 50) - float(player_y)) + 410) + stage_movement_y >= 309:
-                                        if game_map[y][x] == '[e]' or game_map[y][x] == '[E]':
-                                            if (((x * 50) - float(player_x)) + 590) - stage_movement_x >= 650:
-                                                stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
-                                                touching_roof = False
-                                                wall_to_right = True
-                                        if game_map[y][x] == '[r]' or game_map[y][x] == '[R]':
-                                            if (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 580:
-                                                stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
-                                                touching_roof = False
-                                                wall_to_left = True
-                        # endregion
+                # Up and down
+    ##            if  360 <= (((-1 * 50) - float(player_y)) + 310) + stage_movement_y <= 410:
+    ##                stage_movement_y = (round(stage_movement_y / 50) * 50)
+    ##                touching_roof = True
+                if  360 <= (((map_size_y * 50) - float(player_y)) + 310) + stage_movement_y <= 410:
+                    stage_movement_y = (round(stage_movement_y / 50) * 50)
+                    touching_ground = True
                 
-            if touching_ground or touching_roof:
-                player_vertical_acceleration = 0
-                if not touching_ground:
-                    player_vertical_acceleration_speed = 0
+                for y in range(map_size_y):  # Runs through the map list separating every line in the y axis.
+                    for x in range(map_size_x):  # Runs through the map list separating every item in the x axis in every separation line of the y axis.
+                        if stage == "Stage 1" or stage == "Stage 2":
 
-            # region [Backdrop movement]
-            if left_border_hit is False:
-                stage_backdrop_movement_1[0] = (0 - 1280 - (stage_movement_x / 16))
-            stage_backdrop_movement_1[1] = (0 + (stage_movement_y / 32))
-            if left_border_hit is False:
-                stage_backdrop_movement_2[0] = (0 - (stage_movement_x / 16))
-            stage_backdrop_movement_2[1] = (0 + (stage_movement_y / 32))
+                            # region [Ground Collision]
+        # The player's border ---v            v-- The selected block's current position --v
+                            if (360 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all:
+                                    570 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 660):
+                                if game_map[y][x] == '[2]' or game_map[y][x] == '[3]' or game_map[y][x] == '[4]' or game_map[y][x] == '[#]' or game_map[y][x] == '[$]':  # Defines the hit box for ground blocks.
+                                    if player_vertical_acceleration <= 0:  # If moving down or not at all:
+                                        stage_movement_y = (round(stage_movement_y / 50) * 50)
+                                        touching_ground = True
+                                        if hit_ground == 1:  # The immediate frame when the player lands from falling.
+                                            hit_ground = 0
+                                            player_frame = 49
+                                    if game_map[y][x] == '[3]' or game_map[y][x] == '[4]' or game_map[y][x] == '[#]' or game_map[y][x] == '[$]':  # Defines the hit box for corner ground blocks.
+                                        if (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 409:
+                                            if game_map[y][x] == '[3]' or game_map[y][x] == '[#]':
+                                                stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
+                                                touching_ground = False
+                                                wall_to_right = True
+                                            if game_map[y][x] == '[4]' or game_map[y][x] == '[$]':
+                                                stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
+                                                touching_ground = False
+                                                wall_to_left = True
+                            # endregion
 
-            # Loops the backdrop so that it feels infinite:
-            if stage_backdrop_movement_1[0] < -1280:
-                stage_backdrop_movement_1[0] += 2560
-            elif stage_backdrop_movement_1[0] > 1280:
-                stage_backdrop_movement_1[0] -= 2560
-            if stage_backdrop_movement_2[0] < -1280:
-                stage_backdrop_movement_2[0] += 2560
-            elif stage_backdrop_movement_2[0] > 1280:
-                stage_backdrop_movement_2[0] -= 2560
-            # endregion
+                            
+                            if (310 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all (about head area):
+                                    590 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 640):
+                                if game_map[y][x] == '[0]'or game_map[y][x] == '[C]':
+                                    in_darkness = True
+                            
+                            # region [Walls]
+                            if (310 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all:
+                                    570 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 660):
+                                if game_map[y][x] == '[7]' or game_map[y][x] == '[%]' or game_map[y][x] == '[T]':  # Defines the hit box for left walls.
+                                    stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
+                                    wall_to_right = True
+                                elif game_map[y][x] == '[8]' or game_map[y][x] == '[^]' or game_map[y][x] == '[Y]':  # Defines the hit box for right walls.
+                                    stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
+                                    wall_to_left = True
+                            # endregion
+
+                            # region [Roof Collision]
+        # The player's border ---v            v-- The selected block's current position --v
+                            if (280 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all:
+                                    570 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 660):
+                                if game_map[y][x] == '[w]' or game_map[y][x] == '[e]' or game_map[y][x] == '[r]':  # Defines the hit box for left walls.
+                                    stage_movement_y = (round((stage_movement_y / 50) * 50) - player_vertical_acceleration)
+                                    touching_roof = True
+                                    if game_map[y][x] == '[e]' or game_map[y][x] == '[r]' or game_map[y][x] == '[E]' or game_map[y][x] == '[R]':  # Defines the hit box for corner ground blocks.
+                                        if (((y * 50) - float(player_y)) + 410) + stage_movement_y >= 309:
+                                            if game_map[y][x] == '[e]' or game_map[y][x] == '[E]':
+                                                if (((x * 50) - float(player_x)) + 590) - stage_movement_x >= 650:
+                                                    stage_movement_x = (round(stage_movement_x / 50) * 50) - 21
+                                                    touching_roof = False
+                                                    wall_to_right = True
+                                            if game_map[y][x] == '[r]' or game_map[y][x] == '[R]':
+                                                if (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 580:
+                                                    stage_movement_x = (round(stage_movement_x / 50) * 50) + 21
+                                                    touching_roof = False
+                                                    wall_to_left = True
+                            # endregion
+                    
+                if touching_ground or touching_roof:
+                    player_vertical_acceleration = 0
+                    if not touching_ground:
+                        player_vertical_acceleration_speed = 0
+
+                # region [Backdrop movement]
+                if left_border_hit is False:
+                    stage_backdrop_movement_1[0] = (0 - 1280 - (stage_movement_x / 16))
+                stage_backdrop_movement_1[1] = (0 + (stage_movement_y / 32))
+                if left_border_hit is False:
+                    stage_backdrop_movement_2[0] = (0 - (stage_movement_x / 16))
+                stage_backdrop_movement_2[1] = (0 + (stage_movement_y / 32))
+
+                # Loops the backdrop so that it feels infinite:
+                if stage_backdrop_movement_1[0] < -1280:
+                    stage_backdrop_movement_1[0] += 2560
+                elif stage_backdrop_movement_1[0] > 1280:
+                    stage_backdrop_movement_1[0] -= 2560
+                if stage_backdrop_movement_2[0] < -1280:
+                    stage_backdrop_movement_2[0] += 2560
+                elif stage_backdrop_movement_2[0] > 1280:
+                    stage_backdrop_movement_2[0] -= 2560
+                # endregion
 
             if stage == "Stage 1":
                 screen.blit(stage_1_background, (0, 0))
@@ -867,7 +880,7 @@ while every_on:  # Anything that updates ever.
                 screen.blit(stage_1_backdrop, (int(stage_backdrop_movement_1[0]), int(stage_backdrop_movement_1[1])))
             if stage == "Stage 2":
                 screen.blit(stage_2_background, (0, 0))
-
+            
             # region Stage movement
             stage_coords[0] = (0 - stage_movement_x) - stage_start_adjust_x
             if stage_coords[0] >= 0:  # Adjusts the screen to not move past the left border.
@@ -884,17 +897,18 @@ while every_on:  # Anything that updates ever.
 
             # region Player animation
             # Setting a frame rate for the loading animation.
-            if player_frame >= 11:  # (a) Must be divisible by itself and 10 more than b.
-                player_frame -= 1  # (b) Speed of animation (frame of game/frame of animation) (Bigger # = faster)
-            else:
-                player_frame = 59  # (c) Must be divisible by itself, first digit must be the number of frames and last digit must be b less than a multiple of 10.
+            if not paused:
+                if player_frame >= 11:  # (a) Must be divisible by itself and 10 more than b.
+                    player_frame -= 1  # (b) Speed of animation (frame of game/frame of animation) (Bigger # = faster)
+                else:
+                    player_frame = 59  # (c) Must be divisible by itself, first digit must be the number of frames and last digit must be b less than a multiple of 10.
 
-            # Shows the first digit of the variable responsible for counting frames
-            stopper = 0
-            for i in str(player_frame):
-                stopper += 1  # Stops in what ever place the # indicates.
-                if stopper == 1:
-                    first_digit = int(i)
+                # Shows the first digit of the variable responsible for counting frames
+                stopper = 0
+                for i in str(player_frame):
+                    stopper += 1  # Stops in what ever place the # indicates.
+                    if stopper == 1:
+                        first_digit = int(i)
 
             # Blitting the different frames of the loading animation.
             player = player_idle[face][first_digit - 1]
@@ -916,7 +930,7 @@ while every_on:  # Anything that updates ever.
                 screen.blit(darkness, ((int(player_coords[0]) - 1230), (-360)))  # Shadow that surrounds the player in dark areas.
 
             # region [Stage Cards]
-            if stage_card is True:
+            if stage_card is True and not paused:
                 if 120 > stage_card_1_pos[0] or stage_card_1_pos[0] > 200:  # This makes the card zoom in and out quickly.
                     stage_card_1_pos[0] -= 60
                     stage_card_2_pos[0] += 60
@@ -937,7 +951,8 @@ while every_on:  # Anything that updates ever.
                     stopper += 1  # Stops in what ever place the # indicates.
                     if stopper == 1:
                         first_digit = int(i)
-                    
+                        
+            if stage_card is True:
                 if first_digit == 1:
                     screen.blit(stage_card_2_5, (stage_card_2_pos[0], stage_card_2_pos[1]))
                 elif first_digit == 2:
@@ -996,6 +1011,7 @@ while every_on:  # Anything that updates ever.
                 Load_Map(level)
                 Load_Stage()
                 pygame.mixer.music.stop()
+                
     # Loading screen:
     if transition_timer < transition_time and transition_load_black is True:
         transition_timer += 1
@@ -1047,6 +1063,7 @@ while every_on:  # Anything that updates ever.
                     elif stage == "Stage 2":
                         Stage_1 = pygame.mixer.music.load('Audio/Success.wav')
                         pygame.mixer.music.play(-1)
+                        
     # Fading out:
     if transition_end_black is True and transition_start_black is False:
         if opacity > 0:

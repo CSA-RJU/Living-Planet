@@ -146,6 +146,11 @@ stage_surface.set_colorkey((255, 255, 254))
 stage_surface_mg = pygame.Surface(screen.get_size())
 stage_surface_mg.fill((255, 255, 254))
 stage_surface_mg.set_colorkey((255, 255, 254))
+
+illumination_size = (150, 150)
+light_surface = pygame.Surface(illumination_size)
+stage_surface_mg.fill((255, 255, 254))
+stage_surface_mg.set_colorkey((255, 255, 254))
 # endregion
 
 # region [Images]
@@ -185,10 +190,16 @@ player = player_idle["right"][0]
 ## region [Levels]
 darkness = pygame.image.load('Images/Darkness.png').convert_alpha()
 darkness = pygame.transform.scale(darkness, (2560, 1440))
+
 stage_1_background = pygame.image.load('Images/Stage 1 Background.png').convert_alpha()
 stage_1_background = pygame.transform.scale(stage_1_background, (1280, 720))
 stage_1_backdrop = pygame.image.load('Images/Stage 1 Backdrop.png').convert_alpha()
 stage_1_backdrop = pygame.transform.scale(stage_1_backdrop, (1280, 720))
+torch_light = pygame.image.load('Images/Torch Light.png')
+torch_light = pygame.transform.scale(torch_light, (150, 150))
+light_surface.blit(torch_light, (0, 0))
+light_surface.set_alpha(0)  # 0 = fully transparent, 255 = fully visable.
+
 stage_2_background = pygame.image.load('Images/Stage 2 Background.png').convert_alpha()
 stage_2_background = pygame.transform.scale(stage_2_background, (1280, 720))
 # endregion
@@ -784,10 +795,18 @@ while every_on:  # Anything that updates ever.
                 if  360 <= (((map_size_y * 50) - float(player_y)) + 310) + stage_movement_y <= 410:
                     stage_movement_y = (round(stage_movement_y / 50) * 50)
                     touching_ground = True
+
+                block_pos = lambda x, y: (int((((x * 50) - float(player_x) + 590) + stage_start_adjust_x)),
+                              int(((y * 50) - float(player_y)) + 310))
                 
                 for y in range(map_size_y):  # Runs through the map list separating every line in the y axis.
                     for x in range(map_size_x):  # Runs through the map list separating every item in the x axis in every separation line of the y axis.
                         if stage == "Stage 1" or stage == "Stage 2":
+
+                            # region [Light Source]
+                            if game_map[y][x] == '[l]' or game_map[y][x] == '[L]':  # v-- Detects what block goes in which place and blits them. --v
+                                stage_surface.blit(light_surface, block_pos(x - 1, y - 1))
+                            # endregion
 
                             # region [Ground Collision]
         # The player's border ---v            v-- The selected block's current position --v

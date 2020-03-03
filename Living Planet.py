@@ -147,10 +147,10 @@ stage_surface_mg = pygame.Surface(screen.get_size())
 stage_surface_mg.fill((255, 255, 254))
 stage_surface_mg.set_colorkey((255, 255, 254))
 
-illumination_size = (150, 150)
-light_surface = pygame.Surface(illumination_size)
-stage_surface_mg.fill((255, 255, 254))
-stage_surface_mg.set_colorkey((255, 255, 254))
+# illumination_size = (150, 150)
+# light_surface = pygame.Surface(illumination_size)
+# light_surface.fill((0, 255, 0))
+# light_surface.set_colorkey((0, 255, 0))
 # endregion
 
 # region [Images]
@@ -195,10 +195,10 @@ stage_1_background = pygame.image.load('Images/Stage 1 Background.png').convert_
 stage_1_background = pygame.transform.scale(stage_1_background, (1280, 720))
 stage_1_backdrop = pygame.image.load('Images/Stage 1 Backdrop.png').convert_alpha()
 stage_1_backdrop = pygame.transform.scale(stage_1_backdrop, (1280, 720))
-torch_light = pygame.image.load('Images/Torch Light.png')
-torch_light = pygame.transform.scale(torch_light, (150, 150))
-light_surface.blit(torch_light, (0, 0))
-light_surface.set_alpha(0)  # 0 = fully transparent, 255 = fully visable.
+torch_light = pygame.image.load('Images/Torch Light_1.png').convert_alpha()
+# torch_light.set_colorkey((0, 0, 0))
+# torch_light = pygame.transform.scale(torch_light, (150, 150))
+# light_surface.blit(torch_light, (0, 0))
 
 stage_2_background = pygame.image.load('Images/Stage 2 Background.png').convert_alpha()
 stage_2_background = pygame.transform.scale(stage_2_background, (1280, 720))
@@ -576,8 +576,10 @@ while every_on:  # Anything that updates ever.
                             print("God mode disabled.")
         # endregion
 
+    light_pos = list()
+    in_darkness = False
     if carry_on:  # When not paused.
-        
+
         # region [Title screen]
         if title_screen is True:
 
@@ -777,7 +779,6 @@ while every_on:  # Anything that updates ever.
                 touching_roof = False
                 wall_to_right = False
                 wall_to_left = False
-                in_darkness = False
 
                 # region [Border Collision]
                 # Left and Right
@@ -805,7 +806,8 @@ while every_on:  # Anything that updates ever.
 
                             # region [Light Source]
                             if game_map[y][x] == '[l]' or game_map[y][x] == '[L]':  # v-- Detects what block goes in which place and blits them. --v
-                                stage_surface.blit(light_surface, block_pos(x - 1, y - 1))
+                                light_pos.append(block_pos(x - 1, y - 1))
+                                # stage_surface.blit(light_surface, block_pos(x - 1, y - 1))
                             # endregion
 
                             # region [Ground Collision]
@@ -910,8 +912,6 @@ while every_on:  # Anything that updates ever.
                 left_border_hit = False
             stage_coords[1] = (0 + stage_movement_y)
             screen.blit(stage_surface, (int(stage_coords[0]), int(stage_coords[1])))
-            if not in_darkness:
-                screen.blit(stage_surface_mg, (int(stage_coords[0]), int(stage_coords[1])))  # Blocks that hide caves and indoors.
             # endregion
 
             # region Player animation
@@ -945,9 +945,15 @@ while every_on:  # Anything that updates ever.
             else:
                 screen.blit(player, (590, 310))  # (x, y) Prints the player at the center of the screen
 
+            for pos in light_pos:
+                pos = list(pos)
+                pos[0] -= int(stage_movement_x)
+                pos[1] += int(stage_movement_y)
+                screen.blit(torch_light, pos)
             if in_darkness:
                 screen.blit(darkness, ((int(player_coords[0]) - 1230), (-360)))  # Shadow that surrounds the player in dark areas.
-
+            else:
+                screen.blit(stage_surface_mg, (int(stage_coords[0]), int(stage_coords[1])))  # Blocks that hide caves and indoors.
             # region [Stage Cards]
             if stage_card is True and not paused:
                 if 120 > stage_card_1_pos[0] or stage_card_1_pos[0] > 200:  # This makes the card zoom in and out quickly.

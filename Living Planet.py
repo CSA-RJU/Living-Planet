@@ -1,7 +1,7 @@
 # Riley Underwood
 # Practicum IT
 # 11/3/19
-# v.0.5.9.2
+# v.0.5.10
 ##                 END OF TERMS AND CONDITIONS
 
 ##        How to Apply These Terms to Your New Programs
@@ -83,7 +83,7 @@ player_frame = 0
 brightness_change_wait = 0
 brightness = 0
 face = "right"
-music_mute = True
+music_mute = False
 god = False
 # endregion
 

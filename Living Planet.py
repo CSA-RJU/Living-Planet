@@ -39,7 +39,7 @@
 ##The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read http://www.gnu.org/philosophy/why-not-lgpl.html.
 
 # [Python imports]
-import pygame
+import pygame, random
 from sys import exit
 from vector2d import Vector2D
 
@@ -80,8 +80,10 @@ stage_coords = [0, 0]
 player_coords = [586, 0]
 title_planet_frame = 10
 player_frame = 0
+brightness_change_wait = 0
+brightness = 0
 face = "right"
-music_mute = False
+music_mute = True
 god = False
 # endregion
 
@@ -130,7 +132,7 @@ loading_frame = 0
 stage_card = 0
 stage_card_frame = 0
 
-rotation_direction = 0.  # At 0, the object will not rotate
+rotation_direction = 0.  # At 0, the object will not rotate.
 # endregion
 # endregion
 
@@ -147,12 +149,6 @@ stage_surface_mg = pygame.Surface(screen.get_size())
 stage_surface_mg.fill((255, 255, 254))
 stage_surface_mg.set_colorkey((255, 255, 254))
 
-# illumination_size = (150, 150)
-# light_surface = pygame.Surface(illumination_size)
-# light_surface.fill((0, 255, 0))
-# light_surface.set_colorkey((0, 255, 0))
-# endregion
-
 # region [Images]
 # region [Title screen]
 title_space = pygame.image.load('Images/Title Space.png').convert_alpha()
@@ -161,7 +157,7 @@ title_space = pygame.transform.scale(title_space, (1280, 720))
 title_planet = pygame.image.load('Images/LP Outer View Dormant.png').convert_alpha()
 title_planet = pygame.transform.scale(title_planet, (800, 800))
 title_planet_pos = Vector2D(950, 250)
-title_planet_rotation = -5.  # How Rotated the image starts.
+title_planet_rotation = -5.  # How rotated the image starts.
 title_planet_rotation_speed = 30.  # Degrees per second.
 
 title_text = pygame.image.load('Images/Title Text.png').convert_alpha()
@@ -195,10 +191,8 @@ stage_1_background = pygame.image.load('Images/Stage 1 Background.png').convert_
 stage_1_background = pygame.transform.scale(stage_1_background, (1280, 720))
 stage_1_backdrop = pygame.image.load('Images/Stage 1 Backdrop.png').convert_alpha()
 stage_1_backdrop = pygame.transform.scale(stage_1_backdrop, (1280, 720))
-torch_light = pygame.image.load('Images/Torch Light_1.png').convert_alpha()
-# torch_light.set_colorkey((0, 0, 0))
-# torch_light = pygame.transform.scale(torch_light, (150, 150))
-# light_surface.blit(torch_light, (0, 0))
+torch_light = pygame.image.load('Images/Torch Light.png').convert_alpha()
+torch_light = pygame.transform.scale(torch_light, (150, 150))
 
 stage_2_background = pygame.image.load('Images/Stage 2 Background.png').convert_alpha()
 stage_2_background = pygame.transform.scale(stage_2_background, (1280, 720))
@@ -357,9 +351,9 @@ def Load_Stage():
     block_cap_c = pygame.transform.scale(block_cap_c, (50, 50))
     if stage == "Stage 1":  # Loads in the blocks in stage 1.
         block_l = pygame.image.load('Images/Blocks/Block Torch.png').convert_alpha()
-        block_l = pygame.transform.scale(block_l, (150, 150))
+        block_l = pygame.transform.scale(block_l, (50, 50))
         block_cap_l = pygame.image.load('Images/Blocks/Block Torch 0.png').convert_alpha()
-        block_cap_l = pygame.transform.scale(block_cap_l, (150, 150))
+        block_cap_l = pygame.transform.scale(block_cap_l, (50, 50))
         block_2 = pygame.image.load('Images/Blocks/Stage 1/Block 2.png').convert_alpha()
         block_2 = pygame.transform.scale(block_2, (50, 50))
         block_3 = pygame.image.load('Images/Blocks/Stage 1/Block 3.png').convert_alpha()
@@ -388,64 +382,50 @@ def Load_Stage():
         block_cap_y = pygame.transform.flip(block_cap_6, False, True)
     elif stage == "Stage 2":
         block_l = pygame.image.load('Images/Blocks/Block Torch.png').convert_alpha()
-        block_l = pygame.transform.scale(block_l, (150, 50))
+        block_l = pygame.transform.scale(block_l, (50, 50))
         block_cap_l = pygame.image.load('Images/Blocks/Block Torch 0.png').convert_alpha()
-        block_cap_l = pygame.transform.scale(block_cap_l, (150, 50))
-        block_02 = pygame.image.load('Images/Blocks/Stage 2/Block 02.png').convert_alpha()
-        block_02 = pygame.transform.scale(block_02, (50, 50))
-        block_03 = pygame.image.load('Images/Blocks/Stage 2/Block 03.png').convert_alpha()
-        block_03 = pygame.transform.scale(block_03, (50, 50))
-        block_cap_03 = pygame.image.load('Images/Blocks/Block Missing.png').convert_alpha()
-        block_cap_03 = pygame.transform.scale(block_cap_03, (50, 50))
-        block_04 = pygame.transform.flip(block_03, True, False)
-        block_cap_04 = block_cap_03
-        block_05 = pygame.image.load('Images/Blocks/Stage 2/Block 05.png').convert_alpha()
-        block_05 = pygame.transform.scale(block_05, (50, 50))
-        block_cap_05 = block_cap_03
-        block_06 = pygame.transform.flip(block_05, True, False)
-        block_cap_06 = block_cap_03
-        block_07 = pygame.image.load('Images/Blocks/Stage 2/Block 07.png').convert_alpha()
-        block_07 = pygame.transform.scale(block_07, (50, 50))
-        block_08 = pygame.transform.flip(block_07, True, False)
-        block_0w = pygame.transform.flip(block_02, False, True)
-        block_0e = pygame.transform.flip(block_03, False, True)
-        block_cap_0e = block_cap_03
-        block_0r = pygame.transform.flip(block_04, False, True)
-        block_cap_0r = block_cap_03
-        block_0t = pygame.transform.flip(block_05, False, True)
-        block_cap_0t = block_cap_03
-        block_0y = pygame.transform.flip(block_06, False, True)
-        block_cap_0y = block_cap_03
+        block_cap_l = pygame.transform.scale(block_cap_l, (50, 50))
+        block_2 = pygame.image.load('Images/Blocks/Stage 2/Block 02.png').convert_alpha()
+        block_2 = pygame.transform.scale(block_2, (50, 50))
+        block_3 = pygame.image.load('Images/Blocks/Stage 2/Block 03.png').convert_alpha()
+        block_3 = pygame.transform.scale(block_3, (50, 50))
+        block_cap_3 = pygame.image.load('Images/Blocks/Block Missing.png').convert_alpha()
+        block_cap_3 = pygame.transform.scale(block_cap_3, (50, 50))
+        block_4 = pygame.transform.flip(block_3, True, False)
+        block_cap_4 = pygame.transform.flip(block_cap_3, True, False)
+        block_5 = pygame.image.load('Images/Blocks/Stage 2/Block 05.png').convert_alpha()
+        block_5 = pygame.transform.scale(block_5, (50, 50))
+        block_cap_5 = block_cap_3
+        block_6 = pygame.transform.flip(block_5, True, False)
+        block_cap_6 = pygame.transform.flip(block_cap_5, True, False)
+        block_7 = pygame.image.load('Images/Blocks/Stage 2/Block 07.png').convert_alpha()
+        block_7 = pygame.transform.scale(block_7, (50, 50))
+        block_8 = pygame.transform.flip(block_7, True, False)
+        block_w = pygame.transform.flip(block_2, False, True)
+        block_e = pygame.transform.flip(block_3, False, True)
+        block_cap_e = block_cap_3
+        block_r = pygame.transform.flip(block_4, False, True)
+        block_cap_r = pygame.transform.flip(block_cap_4, False, True)
+        block_t = pygame.transform.flip(block_5, False, True)
+        block_cap_t = block_cap_3
+        block_y = pygame.transform.flip(block_6, False, True)
+        block_cap_y = pygame.transform.flip(block_cap_6, False, True)
     block_pos = lambda x, y: (int((((x * 50) - float(player_x) + 590) + stage_start_adjust_x)),
                               int(((y * 50) - float(player_y)) + 310))
 
     block_type_list = ['[0]', '[c]', '[C]', '[l]', '[L]', '[2]', '[3]', '[#]', '[4]', '[$]', '[5]', '[%]', '[6]', '[^]', '[7]', '[8]', '[w]', '[e]', '[E]', '[r]', '[R]', '[t]', '[T]', '[y]', '[Y]']
-    if stage == "Stage 1":
-        block_id_list_S1 = [block_0, block_c, block_cap_c, block_l, block_cap_l, block_2, block_3, block_cap_3, block_4, block_cap_4, block_5, block_cap_5, block_6, block_cap_6, block_7, block_8, block_w, block_e, block_cap_e, block_r, block_cap_r, block_t, block_cap_t, block_y, block_cap_y]
-    if stage == "Stage 2":
-        block_id_list_S2 = [block_0, block_c, block_cap_c, block_l, block_cap_l, block_02, block_03, block_cap_03, block_04, block_cap_04, block_05, block_cap_05, block_06, block_cap_06, block_07, block_08, block_0w, block_0e, block_cap_0e, block_0r, block_cap_0r, block_0t, block_cap_0t, block_0y, block_cap_0y]
+    if stage == "Stage 1" or stage == "Stage 2":
+        block_id_list = [block_0, block_c, block_cap_c, block_l, block_cap_l, block_2, block_3, block_cap_3, block_4, block_cap_4, block_5, block_cap_5, block_6, block_cap_6, block_7, block_8, block_w, block_e, block_cap_e, block_r, block_cap_r, block_t, block_cap_t, block_y, block_cap_y]
         
     if level != "none":
         for y in range(map_size_y):  # Runs through the map list separating every line in the y axis.
             for x in range(map_size_x):  # Runs through the map list separating every item in the x axis in every separation line of the y axis.
-                if stage == "Stage 1":  # Renders every block in the level and blits it to the stage surface.
+                if stage == "Stage 1" or stage == "Stage 2":  # Renders every block in the level and blits it to the stage surface.
                     for i in range(0, 25):
                         if game_map[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
-                            if i == 3 or i == 4:
-                                stage_surface.blit(block_id_list_S1[i], block_pos(x - 1, y - 1))
-                            else:
-                                stage_surface.blit(block_id_list_S1[i], block_pos(x, y))
+                            stage_surface.blit(block_id_list[i], block_pos(x, y))
                         elif game_map_mg[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
-                            stage_surface_mg.blit(block_id_list_S1[i], block_pos(x, y))
-                elif stage == "Stage 2":
-                    for i in range(0, 19):
-                        if game_map[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
-                            if i == 3 or i == 4:
-                                stage_surface.blit(block_id_list_S2[i], block_pos(x - 50, y - 50))
-                            else:
-                                stage_surface.blit(block_id_list_S2[i], block_pos(x, y))
-                        elif game_map_mg[y][x] == block_type_list[i]:  # v-- Detects what block goes in which place and blits them. --v
-                            stage_surface_mg.blit(block_id_list_S2[i], block_pos(x, y))
+                            stage_surface_mg.blit(block_id_list[i], block_pos(x, y))
 
 def Stage_Card():
     global stage_card, stage, gameplay, stage_card_1, stage_card_2_1, stage_card_2_2, stage_card_2_3, stage_card_2_4, stage_card_2_5, stage_card_1_pos, stage_card_2_pos
@@ -836,7 +816,7 @@ while every_on:  # Anything that updates ever.
                             
                             if (310 <= (((y * 50) - float(player_y)) + 310) + stage_movement_y <= 410) and (  # If touching the block at all (about head area):
                                     590 <= (((x * 50) - float(player_x)) + 590) - stage_movement_x <= 640):
-                                if game_map[y][x] == '[0]'or game_map[y][x] == '[C]':
+                                if game_map[y][x] == '[0]' or game_map[y][x] == '[C]' or game_map[y][x] == '[L]':
                                     in_darkness = True
                             
                             # region [Walls]
@@ -945,11 +925,25 @@ while every_on:  # Anything that updates ever.
             else:
                 screen.blit(player, (590, 310))  # (x, y) Prints the player at the center of the screen
 
+            brightness_change_wait += 1
+            if brightness_change_wait >= 4:  # Controls how fast the light flickers. Higher # = slower flicker.
+                brightness_change_wait = 0
+            if brightness_change_wait == 0:
+                brightness_change = random.randrange(0, 2)
+                if brightness <= 1:  # Sets the min. brightness.
+                    brightness += brightness_change
+                elif brightness >= 4:  # Sets the max. brightness.
+                    brightness -= brightness_change
+                else:  # Changes the brightness randomly.
+                    if brightness_change == 0:
+                        brightness_change = -1
+                    brightness += brightness_change 
             for pos in light_pos:
                 pos = list(pos)
                 pos[0] -= int(stage_movement_x)
                 pos[1] += int(stage_movement_y)
-                screen.blit(torch_light, pos)
+                for nope in range(brightness):
+                    screen.blit(torch_light, pos)
             if in_darkness:
                 screen.blit(darkness, ((int(player_coords[0]) - 1230), (-360)))  # Shadow that surrounds the player in dark areas.
             else:

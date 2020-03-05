@@ -42,7 +42,7 @@ from vector2d import Vector2D
 
 # region [Globals]
 # Misc. globals:
-global stage, level, carry_on, gameplay, game_map, game_map_mg, map_size_x, map_size_y, player_temp_x, player_temp_y, title_screen, stage_surface, stage_surface_mg, stage_start_adjust_x, player_start_adjust_x, stage_coords, player_coords
+global stage, level, carry_on, gameplay, paused, options, game_map, game_map_mg, map_size_x, map_size_y, player_temp_x, player_temp_y, title_screen, stage_surface, stage_surface_mg, stage_start_adjust_x, player_start_adjust_x, stage_coords, player_coords
 # Controls:
 global player_x, player_y, player_horizontal_acceleration_speed, player_horizontal_acceleration
 global movement_horizontal_direction, stage_movement_x, player_vertical_acceleration, movement_vertical_direction
@@ -80,7 +80,7 @@ player_frame = 0
 brightness_change_wait = 0
 brightness = 0
 face = "right"
-music_mute = False
+music_muted = False
 god = False
 # endregion
 
@@ -230,14 +230,15 @@ title_song = pygame.mixer.music.load('Audio/Pure Numbness.wav')
 
 # region FUNCTIONS
 def Title_Screen():
-    global every_on, carry_on, title_screen, stage, gameplay, paused
+    global every_on, carry_on, title_screen, stage, gameplay, paused, options
     every_on = True
     gameplay = False
     paused = False
+    options = False
 
-    if music_mute is False:
+    Titlesong = pygame.mixer.music.load('Audio/Pure Numbness.wav')
+    if not music_muted:
         if title_screen is True:
-            Titlesong = pygame.mixer.music.load('Audio/Pure Numbness.wav')
             pygame.mixer.music.play(-1)
 
     title_screen = True
@@ -438,13 +439,21 @@ def Stage_Card():
 
 
 def Pause():  # Pauses the game.
-    global carry_on, paused
+    global paused
     paused = True
 
 
 def Unpause():  # Unpauses the game.
-    global carry_on, paused
+    global paused
     paused = False
+
+def Options():  # Unpauses the game.
+    global options
+    options = True
+
+def Unoptions():  # Unpauses the game.
+    global options
+    options = False
 # endregion
 
 # region RUNNING THE GAME
@@ -453,6 +462,7 @@ carry_on = True
 title_screen = True
 gameplay = False
 paused = False
+options = False
 pygame.mixer.music.stop()
 Title_Screen()
 
@@ -483,7 +493,8 @@ while every_on:  # Anything that updates ever.
         if event.type == pygame.MOUSEBUTTONDOWN:
             if carry_on:
                 # Title screen buttons:
-                if title_screen is True and transition_end_black is False:  # Only on title screen and after a transition has finished can this happen.
+                if title_screen is True and transition_end_black is False and options is False:  # Only on title screen and after a transition has finished can this happen.
+                    print("Title Screen")
                     # New Game button
                     if 408 <= mousexy[0] <= 875 and 304 <= mousexy[1] <= 384:
                         New_Game()
@@ -492,7 +503,7 @@ while every_on:  # Anything that updates ever.
                         Load_Game()
                     # Options button
                     if 408 <= mousexy[0] <= 875 and 508 <= mousexy[1] <= 588:
-                        print("Extras coming soon!")
+                        Options()
                     # Leave button
                     if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
                         carry_on = False
@@ -507,7 +518,8 @@ while every_on:  # Anything that updates ever.
                             print("God mode disabled.")
                             
                 # Pause buttons:
-                if paused is True and transition_end_black is False:  # Only on title screen and after a transition has finished can this happen.
+                elif paused and transition_end_black is False and options is False:  # When paused and after a transition has finished can this happen.
+                    print("Paused")
                     # Resume button
                     if 408 <= mousexy[0] <= 875 and 304 <= mousexy[1] <= 384:
                         Unpause()
@@ -526,7 +538,7 @@ while every_on:  # Anything that updates ever.
                         Title_Screen()
                     # Options button
                     if 408 <= mousexy[0] <= 875 and 508 <= mousexy[1] <= 588:
-                        print("Options coming soon!")
+                        Options()
                     # Leave button
                     if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
                         carry_on = False
@@ -539,6 +551,30 @@ while every_on:  # Anything that updates ever.
                         elif god:
                             god = False
                             print("God mode disabled.")
+
+                # Options buttons:
+                elif paused or title_screen is True and transition_end_black is False and options is True:  # When paused and after a transition has finished can this happen.
+                    print("Options")
+                    # Return button
+                    if 408 <= mousexy[0] <= 875 and 304 <= mousexy[1] <= 384:
+                        Unoptions()
+                    # Resume
+                    if 408 <= mousexy[0] <= 875 and 408 <= mousexy[1] <= 488:
+                        print("Nothing yet")
+                    # Music Mute button
+                    if 408 <= mousexy[0] <= 875 and 508 <= mousexy[1] <= 588:
+                        if music_muted:
+                            music_muted = False
+                            pygame.mixer.music.play(-1)
+                            print("Music unmuted.")
+                        elif not music_muted:
+                            music_muted = True
+                            pygame.mixer.music.stop()
+                            print("Music muted.")
+                    # Leave button
+                    if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
+                        carry_on = False
+                        every_on = False
         # endregion
 
     light_pos = list()
@@ -901,7 +937,7 @@ while every_on:  # Anything that updates ever.
 
             # Running animation.
             if movement_horizontal_direction != "none":
-                if player_horizontal_acceleration <= 2 and player_horizontal_acceleration >= -2:
+                if player_horizontal_acceleration <= 3 and player_horizontal_acceleration >= -3:
                     player = player_run[face][0]
                 else:
                     player = player_run[face][1]
@@ -1066,16 +1102,18 @@ while every_on:  # Anything that updates ever.
             transition_load_black = False
             transition_end_black = True
             carry_on = True
-            if music_mute is False:  # Playing music
-                if title_screen is True:
-                    Titlesong = pygame.mixer.music.load('Audio/Pure Numbness.wav')
+            if title_screen is True:  # Playing music
+                Titlesong = pygame.mixer.music.load('Audio/Pure Numbness.wav')
+                if not music_muted:
                     pygame.mixer.music.play(-1)
-                else:
-                    if stage == "Stage 1":  # v-- Plays music when loading stops. --v
-                        Stage_1 = pygame.mixer.music.load('Audio/Home World Theme.wav')
+            else:
+                if stage == "Stage 1":  # v-- Plays music when loading stops. --v
+                    Stage_1 = pygame.mixer.music.load('Audio/Home World Theme.wav')
+                    if not music_muted:
                         pygame.mixer.music.play(-1)
-                    elif stage == "Stage 2":
-                        Stage_1 = pygame.mixer.music.load('Audio/Success.wav')
+                elif stage == "Stage 2":
+                    Stage_1 = pygame.mixer.music.load('Audio/Success.wav')
+                    if not music_muted:
                         pygame.mixer.music.play(-1)
                         
     # Fading out:

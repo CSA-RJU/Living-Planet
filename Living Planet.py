@@ -1,16 +1,17 @@
-# Riley Underwood
-# Practicum IT
-# 11/3/19
-# v.0.5.11
-##                 END OF TERMS AND CONDITIONS
+##Copyright (C) 2019  Riley Underwood
 
-##        How to Apply These Terms to Your New Programs
-##If you develop a new program, and you want it to be of the greatest possible use to the public, the best way to achieve this is to make it free software which every_one can redistribute and change under these terms.
+## Practicum IT
+## Started: 11/3/19
+## v.0.6
 
-##To do so, attach the following notices to the program. It is safest to attach them to the start of each source file to most effectively state the exclusion of warranty; and each file should have at least the "copyright" line and a pointer to where the full notice is found.
-##
-##{one line to give the program's name and a brief idea of what it does.}
-##Copyright (C) 2018  {name of author}
+## Last finished:
+##  - Added code and two frames for running animation.
+
+## To do:
+##  - Finish running animation
+##  - Add "Options" menu
+##  - Design Stage 1 Levels
+
 
 ##This program is free software: you can redistribute it and/or modify
 ##it under the terms of the GNU General Public License as published by
@@ -28,15 +29,11 @@
 
 ##If the program does terminal interaction, make it output a short notice like this when it starts in an interactive mode:
 
-##Living-Planet  Copyright (C) 2018  CSA-RJU
+##Living-Planet  Copyright (C) 2019  CSA-RJU
 ##This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
 ##This is free software, and you are welcome to redistribute it
 ##under certain conditions; type `show c' for details.
 ##The hypothetical commands show w' and show c' should show the appropriate parts of the General Public License. Of course, your program's commands might be different; for a GUI interface, you would use an "about box".
-
-##You should also get your employer (if you work as a programmer) or school, if any, to sign a "copyright disclaimer" for the program, if necessary. For more information on this, and how to apply and follow the GNU GPL, see http://www.gnu.org/licenses/.
-
-##The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read http://www.gnu.org/philosophy/why-not-lgpl.html.
 
 # [Python imports]
 import pygame, random
@@ -174,13 +171,20 @@ for i in range(1, 6):
     animation_image = pygame.transform.scale(animation_image, (100, 100))
     player_idle["right"].append(animation_image)
     player_idle["left"].append(pygame.transform.flip(animation_image, True, False))
+    
+player_run = {"right": list(), "left": list()}
+for i in range(0, 2):
+    animation_image = pygame.image.load(f'Images/Player Run ({i}).png').convert_alpha()
+    animation_image = pygame.transform.scale(animation_image, (100, 100))
+    player_run["right"].append(animation_image)
+    player_run["left"].append(pygame.transform.flip(animation_image, True, False))
+    
 player_jump = {"right": list(), "left": list()}
 for i in range(1, 4):
     animation_image = pygame.image.load(f'Images/Player Jump ({i}).png').convert_alpha()
     animation_image = pygame.transform.scale(animation_image, (100, 100))
     player_jump["right"].append(animation_image)
     player_jump["left"].append(pygame.transform.flip(animation_image, True, False))
-player = player_idle["right"][0]
 # endregion
 
 ## region [Levels]
@@ -892,9 +896,15 @@ while every_on:  # Anything that updates ever.
                     if stopper == 1:
                         first_digit = int(i)
 
-            # Blitting the different frames of the loading animation.
+            # Blitting the different frames of the idle animation.
             player = player_idle[face][first_digit - 1]
 
+            # Running animation.
+            if movement_horizontal_direction != "none":
+                if player_horizontal_acceleration <= 2 and player_horizontal_acceleration >= -2:
+                    player = player_run[face][0]
+                else:
+                    player = player_run[face][1]
             # Jumping animation.
             if not touching_ground:
                 if player_vertical_acceleration > 3:

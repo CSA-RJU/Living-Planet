@@ -2,14 +2,17 @@
 
 ## Practicum IT
 ## Started: 11/3/19
-## v.0.6
+## v.0.7
 
 ## Last finished:
-##  - Added code and two frames for running animation.
+##  - Added options menu
+##  - Togglable mute button
+##  - Saving and loading game data
+##  - Changed the way light sources work so they can bee seen from across the screen when in the dark.
+##  - Another running animation frame
 
 ## To do:
 ##  - Finish running animation
-##  - Add "Options" menu
 ##  - Design Stage 1 Levels
 
 
@@ -147,7 +150,7 @@ stage_surface_mg.fill((255, 255, 254))
 stage_surface_mg.set_colorkey((255, 255, 254))
 
 # region [Images]
-# region [Title screen]
+# region [Menus]
 title_space = pygame.image.load('Images/Title Space.png').convert_alpha()
 title_space = pygame.transform.scale(title_space, (1280, 720))
 
@@ -162,6 +165,16 @@ title_text = pygame.transform.scale(title_text, (1280, 720))
 
 title_text_highlight = pygame.image.load('Images/Title Text Highlight.png').convert_alpha()
 title_text_highlight = pygame.transform.scale(title_text_highlight, (1280, 720))
+
+paused_text = pygame.image.load('Images/Paused Text.png').convert_alpha()
+paused_text = pygame.transform.scale(paused_text, (1280, 720))
+
+options_text = pygame.image.load('Images/Options Text.png').convert_alpha()
+options_text = pygame.transform.scale(options_text, (1280, 720))
+options_music_on = pygame.image.load('Images/Options (Music on).png').convert_alpha()
+options_music_on = pygame.transform.scale(options_music_on, (1280, 720))
+options_music_off = pygame.image.load('Images/Options (Music off).png').convert_alpha()
+options_music_off = pygame.transform.scale(options_music_off, (1280, 720))
 # endregion
 
 ## region [Player]
@@ -173,7 +186,7 @@ for i in range(1, 6):
     player_idle["left"].append(pygame.transform.flip(animation_image, True, False))
     
 player_run = {"right": list(), "left": list()}
-for i in range(0, 2):
+for i in range(0, 6):
     animation_image = pygame.image.load(f'Images/Player Run ({i}).png').convert_alpha()
     animation_image = pygame.transform.scale(animation_image, (100, 100))
     player_run["right"].append(animation_image)
@@ -202,11 +215,6 @@ stage_2_background = pygame.image.load('Images/Stage 2 Background.png').convert_
 stage_2_background = pygame.transform.scale(stage_2_background, (1280, 720))
 # endregion
 
-## region [Paused]
-paused_text = pygame.image.load('Images/Paused Text.png').convert_alpha()
-paused_text = pygame.transform.scale(paused_text, (1280, 720))
-# endregion
-
 # region [Loading screen]
 loading_screen = pygame.image.load('Images/Loading Screen.png').convert_alpha()
 loading_screen = pygame.transform.scale(loading_screen, (1280, 720))
@@ -229,6 +237,46 @@ title_song = pygame.mixer.music.load('Audio/Pure Numbness.wav')
 # endregion
 
 # region FUNCTIONS
+
+def Load_Game_Data():
+    global stage, level, music_muted
+    game_data_load = open('Game Data.txt', "r")
+    line = game_data_load.readline()  # Reads the first line once to get it started.
+    linesplit = line.split(":")
+    for a in linesplit:
+        a = a.strip(" \n")
+        stage = (f'Stage {a}')
+    line = game_data_load.readline()  # Assures that the program checks more than one line.
+    linesplit = line.split(":")
+    for b in linesplit:
+        b = b.strip(" \n")
+        level = (f'Level {b}')
+    line = game_data_load.readline()  # Assures that the program checks more than one line.
+    linesplit = line.split(":")
+    for c in linesplit:
+        c = c.strip(" \n")
+        if c == "False":
+            c = False
+        else:
+            c = True
+        music_muted = c
+    game_data_load.close()
+Load_Game_Data()
+
+def Save_Game_Data():
+    global stage, level, music_muted
+    game_data_save = open('Game Data.txt', "w")
+    stagesplit = stage.split(" ")
+    for a in stagesplit:
+        a = a
+    game_data_save.write(f'Stage: {a}\n')
+    levelsplit = level.split(" ")
+    for b in levelsplit:
+        b = b
+    game_data_save.write(f'Level: {b}\n')
+    game_data_save.write(f'music_muted: {music_muted}\n')
+    game_data_save.close()
+
 def Title_Screen():
     global every_on, carry_on, title_screen, stage, gameplay, paused, options
     every_on = True
@@ -266,8 +314,6 @@ def New_Game():
 
 def Load_Game():
     global stage, level, gameplay
-    stage = "Stage 2"
-    level = "Level Test"
     gameplay = True
 
     # Stuff for doing a transition:
@@ -442,7 +488,6 @@ def Pause():  # Pauses the game.
     global paused
     paused = True
 
-
 def Unpause():  # Unpauses the game.
     global paused
     paused = False
@@ -484,6 +529,11 @@ while every_on:  # Anything that updates ever.
                     Pause()
                 elif paused is True:
                     Unpause()
+                    if options is True:
+                        Unoptions()
+            if event.key == pygame.K_a or event.key == pygame.K_d and carry_on is True and gameplay is True:
+                player_frame = 59
+                
         if event.type == pygame.QUIT:
             every_on = False
         # region [Buttons]
@@ -494,7 +544,6 @@ while every_on:  # Anything that updates ever.
             if carry_on:
                 # Title screen buttons:
                 if title_screen is True and transition_end_black is False and options is False:  # Only on title screen and after a transition has finished can this happen.
-                    print("Title Screen")
                     # New Game button
                     if 408 <= mousexy[0] <= 875 and 304 <= mousexy[1] <= 384:
                         New_Game()
@@ -506,6 +555,7 @@ while every_on:  # Anything that updates ever.
                         Options()
                     # Leave button
                     if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
+                        Save_Game_Data()
                         carry_on = False
                         every_on = False
                     # Extras button
@@ -519,7 +569,6 @@ while every_on:  # Anything that updates ever.
                             
                 # Pause buttons:
                 elif paused and transition_end_black is False and options is False:  # When paused and after a transition has finished can this happen.
-                    print("Paused")
                     # Resume button
                     if 408 <= mousexy[0] <= 875 and 304 <= mousexy[1] <= 384:
                         Unpause()
@@ -541,6 +590,7 @@ while every_on:  # Anything that updates ever.
                         Options()
                     # Leave button
                     if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
+                        Save_Game_Data()
                         carry_on = False
                         every_on = False
                     # Extras button
@@ -554,7 +604,6 @@ while every_on:  # Anything that updates ever.
 
                 # Options buttons:
                 elif paused or title_screen is True and transition_end_black is False and options is True:  # When paused and after a transition has finished can this happen.
-                    print("Options")
                     # Return button
                     if 408 <= mousexy[0] <= 875 and 304 <= mousexy[1] <= 384:
                         Unoptions()
@@ -566,13 +615,12 @@ while every_on:  # Anything that updates ever.
                         if music_muted:
                             music_muted = False
                             pygame.mixer.music.play(-1)
-                            print("Music unmuted.")
                         elif not music_muted:
                             music_muted = True
                             pygame.mixer.music.stop()
-                            print("Music muted.")
                     # Leave button
                     if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
+                        Save_Game_Data()
                         carry_on = False
                         every_on = False
         # endregion
@@ -597,7 +645,8 @@ while every_on:  # Anything that updates ever.
             # Blitting images.
             screen.blit(title_space, (0, 0))
             screen.blit(rotated_title_planet, [int(axis) for axis in title_planet_draw_pos])
-            screen.blit(title_text, (0, 0))
+            if options is False:
+                screen.blit(title_text, (0, 0))
 
             # Rotating planet on title screen.
             if title_planet_frame >= 1:
@@ -608,25 +657,6 @@ while every_on:  # Anything that updates ever.
                     rotation_direction = -.01
                 else:
                     rotation_direction = .01
-            # endregion
-
-            # region [Button highlights]
-            if transition_end_black is False:  # Only after a transition has finished can this happen.
-                # New Game button
-                if 408 <= mousexy[0] <= 875 and 305 <= mousexy[1] <= 385:
-                    screen.blit(title_text_highlight, (0, 0))
-                # Load Game button
-                if 408 <= mousexy[0] <= 875 and 408 <= mousexy[1] <= 488:
-                    screen.blit(title_text_highlight, (0, 104))
-                # Options button
-                if 408 <= mousexy[0] <= 875 and 508 <= mousexy[1] <= 588:
-                    screen.blit(title_text_highlight, (0, 204))
-                # Leave button
-                if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
-                    screen.blit(title_text_highlight, (0, 308))
-                # Extras button
-                if 408 <= mousexy[0] <= 875 and 719 <= mousexy[1] <= 799:
-                    screen.blit(title_text_highlight, (0, 415))
             # endregion
             
         else:
@@ -934,13 +964,14 @@ while every_on:  # Anything that updates ever.
 
             # Blitting the different frames of the idle animation.
             player = player_idle[face][first_digit - 1]
-
+                        
             # Running animation.
             if movement_horizontal_direction != "none":
                 if player_horizontal_acceleration <= 3 and player_horizontal_acceleration >= -3:
                     player = player_run[face][0]
                 else:
-                    player = player_run[face][1]
+                    player = player_run[face][first_digit]
+                    
             # Jumping animation.
             if not touching_ground:
                 if player_vertical_acceleration > 3:
@@ -952,7 +983,7 @@ while every_on:  # Anything that updates ever.
             if left_border_hit is True:
                 screen.blit(player, (int(player_coords[0]), 310))  # (x, y) Moves the player to adjust for stage not moving.
             else:
-                screen.blit(player, (590, 310))  # (x, y) Prints the player at the center of the screen
+                screen.blit(player, (590, 310))  # (x, y) Prints the player at the center of the screen.
 
             if not paused:
                 brightness_change_wait += 1
@@ -968,6 +999,9 @@ while every_on:  # Anything that updates ever.
                         if brightness_change == 0:
                             brightness_change = -1
                         brightness += brightness_change
+                        
+            if in_darkness:
+                screen.blit(darkness, ((int(player_coords[0]) - 1230), (-360)))  # Shadow that surrounds the player in dark areas.
 
             for pos in light_pos:
                 pos = list(pos)
@@ -975,9 +1009,8 @@ while every_on:  # Anything that updates ever.
                 pos[1] += int(stage_movement_y)
                 for nope in range(brightness):
                     screen.blit(torch_light, pos)
-            if in_darkness:
-                screen.blit(darkness, ((int(player_coords[0]) - 1230), (-360)))  # Shadow that surrounds the player in dark areas.
-            else:
+                    
+            if not in_darkness:
                 screen.blit(stage_surface_mg, (int(stage_coords[0]), int(stage_coords[1])))  # Blocks that hide caves and indoors.
             # region [Stage Cards]
             if stage_card is True and not paused:
@@ -1020,26 +1053,36 @@ while every_on:  # Anything that updates ever.
             # endregion
             # endregion
 
-            # region Paused
-            if title_screen is False and paused is True:
+            # region [Menus]
+            # Pause menu
+            if title_screen is False and paused and options is False:
                 screen.blit(paused_text, (0, 0))
 
-                if transition_end_black is False:  # Only after a transition has finished can this happen.
-                    # New game button
-                    if 408 <= mousexy[0] <= 875 and 305 <= mousexy[1] <= 385:
-                        screen.blit(title_text_highlight, (0, 0))
-                    # Load game button
-                    if 408 <= mousexy[0] <= 875 and 408 <= mousexy[1] <= 488:
-                        screen.blit(title_text_highlight, (0, 104))
-                    # Ex-content button
-                    if 408 <= mousexy[0] <= 875 and 508 <= mousexy[1] <= 588: 
-                        screen.blit(title_text_highlight, (0, 204))
-                    # Leave button
-                    if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
-                        screen.blit(title_text_highlight, (0, 308))
-                    # Extras button
-                    if 408 <= mousexy[0] <= 875 and 719 <= mousexy[1] <= 799:
-                        screen.blit(title_text_highlight, (0, 415))
+        # Options menu
+        if paused and options is True or title_screen is True and options is True:
+            screen.blit(options_text, (0, 0))
+            if not music_muted:
+                screen.blit(options_music_on, (0, 0))
+            if music_muted:
+                screen.blit(options_music_off, (0, 0))
+
+        # Button highlights
+        if transition_end_black is False and paused or title_screen is True or options is True:  # Only after a transition has finished can this happen.
+            # 1st button
+            if 408 <= mousexy[0] <= 875 and 305 <= mousexy[1] <= 385:
+                screen.blit(title_text_highlight, (0, 0))
+            # 2nd button
+            if 408 <= mousexy[0] <= 875 and 408 <= mousexy[1] <= 488:
+                screen.blit(title_text_highlight, (0, 104))
+            # 3rd button
+            if 408 <= mousexy[0] <= 875 and 508 <= mousexy[1] <= 588: 
+                screen.blit(title_text_highlight, (0, 204))
+            # 4th button
+            if 408 <= mousexy[0] <= 875 and 612 <= mousexy[1] <= 692:
+                screen.blit(title_text_highlight, (0, 308))
+            # Secret button
+            if 408 <= mousexy[0] <= 875 and 719 <= mousexy[1] <= 799 and options is False:
+                screen.blit(title_text_highlight, (0, 415))
             # endregion
         # endregion
 

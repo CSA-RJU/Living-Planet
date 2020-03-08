@@ -1,3 +1,4 @@
 Stage: 1
-Level: Test
-music_muted: False
+Level: Demo
+music_muted: True
+developer_mode: True

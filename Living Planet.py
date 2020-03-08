@@ -2,18 +2,15 @@
 
 ## Practicum IT
 ## Started: 11/3/19
-## v.0.7
+## v.0.7.5
 
 ## Last finished:
-##  - Added options menu
-##  - Togglable mute button
-##  - Saving and loading game data
-##  - Changed the way light sources work so they can bee seen from across the screen when in the dark.
-##  - Another running animation frame
+##  - Added a decent running animation
+##  - Extended demo level and added a puzzle
+##  - Changed the way levels are loaded
 
 ## To do:
-##  - Finish running animation
-##  - Design Stage 1 Levels
+##  - Fix minor bugs
 
 
 ##This program is free software: you can redistribute it and/or modify
@@ -45,7 +42,8 @@ from vector2d import Vector2D
 
 # region [Globals]
 # Misc. globals:
-global stage, level, carry_on, gameplay, paused, options, game_map, game_map_mg, map_size_x, map_size_y, player_temp_x, player_temp_y, title_screen, stage_surface, stage_surface_mg, stage_start_adjust_x, player_start_adjust_x, stage_coords, player_coords
+global stage, level, carry_on, gameplay, paused, options, game_map, game_map_mg, map_size_x, map_size_y, player_temp_x, player_temp_y, title_screen
+global stage_surface, stage_surface_mg, stage_start_adjust_x, player_start_adjust_x, stage_coords, player_coords, developer_mode, first_digit
 # Controls:
 global player_x, player_y, player_horizontal_acceleration_speed, player_horizontal_acceleration
 global movement_horizontal_direction, stage_movement_x, player_vertical_acceleration, movement_vertical_direction
@@ -56,7 +54,7 @@ global player_vertical_acceleration_speed, stage_movement_y, land_adjust
 SONG_END = pygame.USEREVENT + 1
 pygame.mixer.music.set_endevent()
 
-pygame.mixer.pre_init(48100, 16, 20, 0)  # Frequency, size, channels, buffer size.
+pygame.mixer.pre_init(48000, 16, 20, 0)  # Frequency, size, channels, buffer size.
 
 pygame.init()
 
@@ -74,8 +72,8 @@ pygame.display.set_caption("Living Planet")
 
 # region [Definitions]
 # region Misc. definitions.
-stage = "none"
-level = "none"
+stage = "1"
+level = "Demo"
 stage_coords = [0, 0]
 player_coords = [586, 0]
 title_planet_frame = 10
@@ -85,6 +83,7 @@ brightness = 0
 face = "right"
 music_muted = False
 god = False
+developer_mode = False
 # endregion
 
 # region Horizontal stage movement
@@ -239,7 +238,7 @@ title_song = pygame.mixer.music.load('Audio/Pure Numbness.wav')
 # region FUNCTIONS
 
 def Load_Game_Data():
-    global stage, level, music_muted
+    global stage, level, music_muted, developer_mode
     game_data_load = open('Game Data.txt', "r")
     line = game_data_load.readline()  # Reads the first line once to get it started.
     linesplit = line.split(":")
@@ -260,11 +259,20 @@ def Load_Game_Data():
         else:
             c = True
         music_muted = c
+    line = game_data_load.readline()  # Assures that the program checks more than one line.
+    linesplit = line.split(":")
+    for d in linesplit:
+        d = d.strip(" \n")
+        if d == "False":
+            d = False
+        else:
+            d = True
+        developer_mode = d
     game_data_load.close()
 Load_Game_Data()
 
 def Save_Game_Data():
-    global stage, level, music_muted
+    global stage, level, music_muted, developer_mode
     game_data_save = open('Game Data.txt', "w")
     stagesplit = stage.split(" ")
     for a in stagesplit:
@@ -275,6 +283,7 @@ def Save_Game_Data():
         b = b
     game_data_save.write(f'Level: {b}\n')
     game_data_save.write(f'music_muted: {music_muted}\n')
+    game_data_save.write(f'developer_mode: {developer_mode}\n')
     game_data_save.close()
 
 def Title_Screen():
@@ -295,7 +304,7 @@ def Title_Screen():
 def New_Game():
     global stage, level, gameplay
     stage = "Stage 1"
-    level = "Level Test"
+    level = "Level Demo"
     gameplay = True
 
     # Stuff for doing a transition:
@@ -336,7 +345,7 @@ def Load_Map(level):
     game_map_mg = []
     if level != "none":
         # Middle ground
-        map_load = open(f'Maps/{level} MG.LPM', "r")
+        map_load = open(f'Maps/{stage} {level} MG.LPM', "r")
         line = map_load.readline()  # Reads the first line once to get it started.
         linesplit = line.split(",")
         line = map_load.readline()
@@ -351,7 +360,7 @@ def Load_Map(level):
         map_load.close()
 
         # Stage with hit boxes
-        map_load = open(f'Maps/{level}.LPM', "r")
+        map_load = open(f'Maps/{stage} {level}.LPM', "r")
         line = map_load.readline()  # Reads the first line once to get it started.
         linesplit = line.split(",")
         map_size_x = int(linesplit[0])
@@ -380,7 +389,7 @@ def Load_Stage():
     stage_movement_y = 0
     stage_coords = [0, 0]
 
-    if 0 >= (0 - float(player_x) + 590):
+    if 0 >= (0 - float(player_x) + 590):  # Adjusts the stage to start off by hugging the screen border if the stage is too big.
         stage_start_adjust_x = (0 - float(player_x) + 590) * -1
         player_start_adjust_x = stage_start_adjust_x * -1
 
@@ -483,6 +492,14 @@ def Stage_Card():
 
             stage_card = True
 
+def Animation(frame):
+    global first_digit
+    # Shows the first digit of the variable responsible for counting frames
+    stopper = 0
+    for i in str(frame):
+        stopper += 1  # Stops in what ever place the # indicates.
+        if stopper == 1:
+            first_digit = int(i)
 
 def Pause():  # Pauses the game.
     global paused
@@ -524,7 +541,7 @@ while every_on:  # Anything that updates ever.
         if event.type == pygame.KEYDOWN:
             key = pygame.key.get_pressed()
             # When "P" is pressed
-            if event.key == pygame.K_p:
+            if event.key == pygame.K_p or event.key == pygame.K_ESCAPE:
                 if paused is False:
                     Pause()
                 elif paused is True:
@@ -532,9 +549,15 @@ while every_on:  # Anything that updates ever.
                     if options is True:
                         Unoptions()
             if event.key == pygame.K_a or event.key == pygame.K_d and carry_on is True and gameplay is True:
-                player_frame = 59
+                player_run_frame = 68
+            if event.key == pygame.K_g and developer_mode:
+                if god:
+                    god = False
+                elif not god:
+                    god = True
                 
         if event.type == pygame.QUIT:
+            Save_Game_Data()
             every_on = False
         # region [Buttons]
         # Moving the mouse:
@@ -560,12 +583,12 @@ while every_on:  # Anything that updates ever.
                         every_on = False
                     # Extras button
                     if 408 <= mousexy[0] <= 875 and 719 <= mousexy[1] <= 799:
-                        if not god:
-                            god = True
-                            print("God mode activated.")
-                        elif god:
-                            god = False
-                            print("God mode disabled.")
+                        if not developer_mode:
+                            developer_mode = True
+                            print("Developer mode activated.")
+                        elif developer_mode:
+                            developer_mode = False
+                            print("Developer mode disabled.")
                             
                 # Pause buttons:
                 elif paused and transition_end_black is False and options is False:  # When paused and after a transition has finished can this happen.
@@ -595,12 +618,12 @@ while every_on:  # Anything that updates ever.
                         every_on = False
                     # Extras button
                     if 408 <= mousexy[0] <= 875 and 719 <= mousexy[1] <= 799:
-                        if not god:
-                            god = True
-                            print("God mode activated.")
-                        elif god:
-                            god = False
-                            print("God mode disabled.")
+                        if not developer_mode:
+                            developer_mode = True
+                            print("Developer mode activated.")
+                        elif developer_mode:
+                            developer_mode = False
+                            print("Developer mode disabled.")
 
                 # Options buttons:
                 elif paused or title_screen is True and transition_end_black is False and options is True:  # When paused and after a transition has finished can this happen.
@@ -668,7 +691,7 @@ while every_on:  # Anything that updates ever.
         if title_screen is False and not paused and transition_end_black is False:  # When Playing the game.
             
             # region [Left]
-            if key[pygame.K_a]:
+            if key[pygame.K_a] or key[pygame.K_LEFT]:
                 if not wall_to_left:
                     face = "left"
                     if movement_horizontal_direction != "left":
@@ -693,7 +716,7 @@ while every_on:  # Anything that updates ever.
             # endregion
             
             # region [Right]
-            if key[pygame.K_d]:
+            if key[pygame.K_d] or key[pygame.K_RIGHT]:
                 if not wall_to_right:
                     face = "right"
                     if movement_horizontal_direction != "right":
@@ -718,19 +741,19 @@ while every_on:  # Anything that updates ever.
                     player_horizontal_acceleration_speed = 0
             # endregion
             
-            if not key[pygame.K_a] and not key[pygame.K_d]:  # Not pressing "a" or "d".
+            if not key[pygame.K_a] and not key[pygame.K_d] and not key[pygame.K_LEFT] and not key[pygame.K_RIGHT]:  # Not pressing "a" or "d".
                 movement_horizontal_direction = "none"
                 
             if not god:
                 # region [Up (Jumping)]
-                if key[pygame.K_w] and touching_ground or key[pygame.K_SPACE] and touching_ground:
+                if key[pygame.K_w] and touching_ground or key[pygame.K_UP] and touching_ground or key[pygame.K_SPACE] and touching_ground:
                     hit_ground = 1 #Only happens for one frame. (Used to set landing animation)
                     if player_vertical_acceleration == 0:
                         player_vertical_acceleration = max_speed_y  # This # controls the speed of the jump. (Starting higher and decreasing)
                     touching_ground = False
 
                 if not touching_ground:
-                    if key[pygame.K_w] and not touching_roof or key[pygame.K_SPACE] and not touching_roof:
+                    if key[pygame.K_w] or key[pygame.K_UP] and not touching_roof or key[pygame.K_SPACE] and not touching_roof:
                         if player_vertical_acceleration > 0:
                             player_vertical_acceleration -= .5  # This # controls how high the player jumps. (The lower the number the higher the jump)
                         elif player_vertical_acceleration > -max_speed_y:  # This # controls the speed of the jump. (Starting higher and decreasing)
@@ -751,7 +774,7 @@ while every_on:  # Anything that updates ever.
                 
             if god:
                 # region [Down]
-                if key[pygame.K_s]:
+                if key[pygame.K_s] or key[pygame.K_DOWN]:
                     if movement_vertical_direction != "down":
                         movement_vertical_direction = "down"
                         player_vertical_acceleration = 0
@@ -773,7 +796,7 @@ while every_on:  # Anything that updates ever.
                 # endregion
 
                 # region [Up]
-                if key[pygame.K_w] or key[pygame.K_SPACE]:
+                if key[pygame.K_w] or key[pygame.K_UP] or key[pygame.K_SPACE]:
                     if movement_vertical_direction != "up":
                         movement_vertical_direction = "up"
                         hit_ground = 1
@@ -792,7 +815,7 @@ while every_on:  # Anything that updates ever.
                         player_vertical_acceleration = 0
                         player_vertical_acceleration_speed = 0
 
-                elif not key[pygame.K_w] and not key[pygame.K_SPACE] and not key[pygame.K_s]:  # Not pressing "w" or "s".
+                elif not key[pygame.K_w] and not key[pygame.K_UP] and not key[pygame.K_SPACE] and not key[pygame.K_s] and not key[pygame.K_DOWN]:  # Not pressing "w" or "s".
                     movement_vertical_direction = "none"
                 # endregion
         # endregion
@@ -950,24 +973,25 @@ while every_on:  # Anything that updates ever.
             # region Player animation
             # Setting a frame rate for the loading animation.
             if not paused:
-                if player_frame >= 11:  # (a) Must be divisible by itself and 10 more than b.
+                if player_frame >= 11:  # (a) Must be 10 more than b.
                     player_frame -= 1  # (b) Speed of animation (frame of game/frame of animation) (Bigger # = faster)
                 else:
-                    player_frame = 59  # (c) Must be divisible by itself, first digit must be the number of frames and last digit must be b less than a multiple of 10.
+                    player_frame = 59  # (c) First digit must be the number of frames and last digit must be b less than a multiple of 10.
 
-                # Shows the first digit of the variable responsible for counting frames
-                stopper = 0
-                for i in str(player_frame):
-                    stopper += 1  # Stops in what ever place the # indicates.
-                    if stopper == 1:
-                        first_digit = int(i)
+                Animation(player_frame)
 
             # Blitting the different frames of the idle animation.
             player = player_idle[face][first_digit - 1]
                         
             # Running animation.
             if movement_horizontal_direction != "none":
-                if player_horizontal_acceleration <= 3 and player_horizontal_acceleration >= -3:
+                if player_run_frame >= 12:  # (a) Must be 10 more than b.
+                    player_run_frame -= 2  # (b) Speed of animation (frame of game/frame of animation) (Bigger # = faster)
+                else:
+                    player_run_frame = 58   # (c) First digit must be the number of frames and last digit must be b less than a multiple of 10.
+
+                Animation(player_run_frame)
+                if player_horizontal_acceleration <= 4 and player_horizontal_acceleration >= -4 or first_digit >= 6:
                     player = player_run[face][0]
                 else:
                     player = player_run[face][first_digit]
@@ -1012,6 +1036,7 @@ while every_on:  # Anything that updates ever.
                     
             if not in_darkness:
                 screen.blit(stage_surface_mg, (int(stage_coords[0]), int(stage_coords[1])))  # Blocks that hide caves and indoors.
+                
             # region [Stage Cards]
             if stage_card is True and not paused:
                 if 120 > stage_card_1_pos[0] or stage_card_1_pos[0] > 200:  # This makes the card zoom in and out quickly.
@@ -1028,12 +1053,7 @@ while every_on:  # Anything that updates ever.
                 else:
                     stage_card_frame = 58  # (c) Must be divisible by itself, first digit must be the number of frames and last digit must be b less than a multiple of 10.
 
-                # Shows the first digit of the variable responsible for counting frames
-                stopper = 0
-                for i in str(stage_card_frame):
-                    stopper += 1  # Stops in what ever place the # indicates.
-                    if stopper == 1:
-                        first_digit = int(i)
+                Animation(stage_card_frame)
                         
             if stage_card is True:
                 if first_digit == 1:
@@ -1121,12 +1141,7 @@ while every_on:  # Anything that updates ever.
         else:
             loading_frame = 59  # (c) Must be divisible by itself, first digit must be the number of frames and last digit must be b less than a multiple of 10.
 
-        ## Shows the first digit of the variable responsible for counting frames
-        stopper = 0
-        for i in str(loading_frame):
-            stopper += 1  # Stops in what ever place the # indicates.
-            if stopper == 1:
-                first_digit = int(i)
+        Animation(loading_frame)
 
         # Blitting the different frames of the loading animation.
         if first_digit == 1:

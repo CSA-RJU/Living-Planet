@@ -304,7 +304,7 @@ def Title_Screen():
 def New_Game():
     global stage, level, gameplay
     stage = "Stage 1"
-    level = "Level Demo"
+    level = "Level Test"
     gameplay = True
 
     # Stuff for doing a transition:

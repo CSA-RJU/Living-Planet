@@ -1,0 +1,6 @@
+Movement:
+	- D/RIGHT
+	- A/LEFT: Move left
+	- W/UP/SPACE: Jump
+		- Hold to jump higher
+
